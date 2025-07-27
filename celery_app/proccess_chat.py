@@ -46,6 +46,7 @@ async def process_messages_from_chat(chat_id: int):
                 save_pattern.delay(pattern['question'], pattern['answer'])
                 total_patterns += 1
         send_notification.delay(f"<b>chat {chat_id}</b>: 🧩 Чанк {i}/{total_chunks} обработан")
+    await make_request(f'message/{chat_id}/mark-as-processed', method='POST')
     send_notification.delay(f"<b>chat {chat_id}</b>: ✅ Сообщений: <b>{total_messages}</b>, чанков: <b>{total_chunks}</b>, сохранённых паттернов: <b>{total_patterns}</b>")
 
 
