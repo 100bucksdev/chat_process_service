@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Union
 
 from fastapi import APIRouter, Depends, Body, Response, status
 from fastapi.params import Query
@@ -63,4 +63,14 @@ async def delete_pattern(
 async def start_task():
     daily_task.delay()
     return {'details': 'started'}
+
+@pattern_router.get("/get-all-texts")
+async def get_all_texts(
+    limit: int = Query(10, gt=0, le=100),
+    cursor: Optional[Union[int, str]] = Query(None),
+    client: AsyncQdrantClient = Depends(get_qdrant_client),
+    model: SentenceTransformer = Depends(get_embedding_model),
+):
+    service = QdrantService(client, model)
+    return await service.get_all_texts(limit=limit, cursor=cursor)
 

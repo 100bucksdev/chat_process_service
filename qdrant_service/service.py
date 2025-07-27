@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Union, Dict
 from uuid import uuid4
 from qdrant_client.http.models import Distance, VectorParams, PointStruct
 
@@ -74,33 +74,17 @@ class QdrantService:
         for p in results.points
     ]
 
-    async def get_all_texts(self, limit: int = None, offset: int = None):
-        """
-        Получить все записанные тексты из коллекции.
-
-        Args:
-            limit: Максимальное количество записей для получения
-            offset: Количество записей для пропуска (для пагинации)
-
-        Returns:
-            List[dict]: Список словарей с вопросами и ответами
-        """
+    async def get_all_texts(self, limit: int, cursor: Optional[Union[int, str]]) -> Dict[str, object]:
         await self._ensure_collection()
-
-        # Получаем все точки из коллекции
-        results = await self.client.scroll(
+        points, next_cursor = await self.client.scroll(
             collection_name=self.COLLECTION_NAME,
             limit=limit,
-            offset=offset,
+            offset=cursor,
             with_payload=True,
-            with_vectors=False  # Векторы не нужны для получения текстов
+            with_vectors=False
         )
-
-        return [
-            {
-                "id": p.id,
-                "question": p.payload.get("question"),
-                "answer": p.payload.get("answer")
-            }
-            for p in results[0]  # results[0] содержит список точек
+        items: List[Dict[str, object]] = [
+            {"id": p.id, "question": p.payload.get("question"), "answer": p.payload.get("answer")}
+            for p in points
         ]
+        return {"items": items, "next": next_cursor}
