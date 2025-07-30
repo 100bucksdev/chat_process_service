@@ -8,7 +8,7 @@ from external_service import make_request
 from qdrant_service.service import QdrantService
 from qdrant_service.types import QuestionLimit, QuestionAnswer
 
-CHUNK_SIZE = 3000
+CHUNK_SIZE = 1300
 
 
 async def process_chats():
@@ -35,6 +35,9 @@ async def process_messages_from_chat(chat_id: int):
         return
     body = messages.get('body') or []
     total_messages = len(body)
+    if total_messages <= 3:
+        send_notification.delay(f'<b>chat {chat_id}</b>: Слишком мало сообщений в чате ❌')
+        return
     chunks = build_chunks(body, CHUNK_SIZE)
     total_chunks = len(chunks)
     total_patterns = 0
