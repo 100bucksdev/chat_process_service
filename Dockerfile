@@ -15,8 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Poetry
 RUN pip install --no-cache-dir poetry
 
-RUN poetry add torch
-
 WORKDIR /app
 
 # Кэшируем зависимости
